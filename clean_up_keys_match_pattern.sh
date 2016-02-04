@@ -7,19 +7,25 @@ then
   exit 1
 fi
 
-response=$(redis-cli -h $1 -p $2 EVAL "$(cat ./lua/scan_match_count_keys.lua)" 0 $3 $4)
+cursor=-1
+keys=""
 
-cursor=$(expr "$response" : '\([0-9]*[0-9 ]\)')
-echo "Cursor: $cursor"
+while [ $cursor -ne 0 ]; do
+  if [ $cursor -eq -1 ]
+  then
+    cursor=0
+  fi
 
-keys=$(echo $response | awk '{for (i=2; i<=NF && i > 0; i++) print $i}')
+  response=$(redis-cli -h $1 -p $2 EVAL "$(cat ./lua/scan_match_count_keys.lua)" 0 $cursor $3 $4)
 
-if [ -n "$keys" ]
-then
+  cursor=$(expr "$response" : '\([0-9]*[0-9 ]\)')
+  echo "Cursor: $cursor"
+
+  keys=$(echo $response | awk '{for (i=2; i<=NF && i > 0; i++) print $i}')
+  [ -z "$keys" ] && continue
+
   keya=( $keys )
   count=$(echo ${#keya[@]})
   redis-cli -h $1 -p $2 EVAL "$(cat ./lua/del_keys.lua)" $count $keys
-  exit 1
-fi
 
-echo "Error: No KEYS that match that PATTER have been found"
+done

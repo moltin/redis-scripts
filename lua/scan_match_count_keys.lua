@@ -1,3 +1,3 @@
 local values = {}
 
-return redis.call('SCAN', 0, 'MATCH', ARGV[1], 'COUNT', ARGV[2])
+return redis.call('SCAN', ARGV[1], 'MATCH', ARGV[2], 'COUNT', ARGV[3])

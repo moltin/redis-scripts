@@ -1,6 +1,6 @@
 local values = {}
 
-local result = redis.call('SCAN', 0, 'MATCH', ARGV[1], 'COUNT', ARGV[2])
+local result = redis.call('SCAN', ARGV[1], 'MATCH', ARGV[2], 'COUNT', ARGV[3])
 local cursor = result[1];
 local keys = result[2];
 
